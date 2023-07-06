@@ -1,0 +1,38 @@
+services:
+  frontend:
+    image: library-front-dev
+    #ports:
+    #  - 3000:3000
+    environment:
+      - WDS_SOCKET_PORT=0 # fix for websocket errors
+    volumes:
+      - ./library-frontend/:/usr/src/app
+  backend:
+    image: library-back-dev
+    environment:
+      - MONGODB_URI=mongodb://dev_user:dev_password@mongo:27017/the_database
+
+    volumes:
+      - ./library-backend/:/usr/src/app
+    depends_on:
+      - mongo
+  mongo: 
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: the_database
+    volumes:
+      - ./library-backend/mongo_data/:/data/db
+      - ./library-backend/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+  reverse-proxy:
+    image: nginx
+    ports:
+      - 8080:80
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+  debug: 
+    image: busybox
