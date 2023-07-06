@@ -1,0 +1,32 @@
+services:
+  frontend:
+    image: library-front-prod
+    # port 80
+  backend:
+    image: library-back-prod
+    # port 4000
+    environment:
+      - MONGODB_URI=mongodb://dev_user:dev_password@mongo:27017/the_database
+      - NODE_ENV=production
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo
+    # port 27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: the_database
+    volumes:
+      - ./library-backend/mongo_data/:/data/db
+      - ./library-backend/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+  nginx:
+    image: nginx:1.25.1-bookworm
+    ports:
+      - 8080:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+
